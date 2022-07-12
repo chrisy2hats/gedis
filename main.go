@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -18,38 +19,106 @@ const (
 )
 
 type Instruction struct {
-	instruction string
-	key         string
-	arg         string
+	key string
 }
 
-func ParseInstruction(raw_instruction string) (Instruction, error) {
-
-	splt := strings.Fields(raw_instruction)
-	if len(splt) < 3 {
-		return Instruction{}, errors.New("Unknown command" + splt[0])
-	}
-	in := Instruction{splt[0], splt[1], splt[2]}
-	fmt.Println(in)
-	return in, nil
+type Get struct {
+	Instruction
+	value string
 }
 
-func HandleInstruction(instruction Instruction) (string, error) {
-	if instruction.instruction == "set" {
-		m[instruction.key] = instruction.arg
-		return "", nil
-	} else if instruction.instruction == "get" {
-		return m[instruction.key], nil
+// Get instructions should be like "get foobar"
+func (get *Get) parse(raw_instruction string) error {
+	space_count := strings.Count(raw_instruction, " ")
+	if space_count != 1 {
+		return errors.New("Invalid get command")
 	}
+	splt := strings.Split(raw_instruction, " ")
+	get.key = splt[1]
+	return nil
+}
 
-	return "", errors.New("Unknown instruction " + instruction.instruction)
+func (get *Get) execute() (string, error) {
+	if value, ok := m[get.key]; ok {
+		return value, nil
+	} else {
+		return "", errors.New("No key " + get.key)
+	}
+}
+
+type Set struct {
+	Instruction
+	value string
+}
+
+// Set instructions should be like "set foobar 42"
+func (set *Set) parse(raw_instruction string) error {
+	space_count := strings.Count(raw_instruction, " ")
+	if space_count != 2 {
+		return errors.New("Invalid set command")
+	}
+	splt := strings.Split(raw_instruction, " ")
+	set.key = splt[1]
+	set.value = splt[2]
+	return nil
+}
+
+func (set *Set) execute() (string, error) {
+	m[set.key] = set.value
+	return "", nil
+}
+
+type Keys struct {
+	Instruction
+	value string
+}
+
+func (set *Keys) parse(raw_instruction string) error {
+	space_count := strings.Count(raw_instruction, " ")
+	if space_count != 1 {
+		return errors.New("Invalid set command")
+	}
+	splt := strings.Split(raw_instruction, " ")
+	set.key = splt[0]
+	set.value = splt[1]
+	return nil
+}
+
+func (keys *Keys) execute() (string, error) {
+	// The startline and endline additons are needed to ensure the regex "a" doesn't match
+	// both keys called "a" and "about"
+	regex := regexp.MustCompile("^" + keys.value + "$")
+	str_builder := strings.Builder{}
+
+	for k, _ := range m {
+		if regex.Match([]byte(jk)) {
+			str_builder.WriteString(k + "\n")
+		}
+	}
+	return str_builder.String(), nil
+}
+
+func ParseInstruction(raw_instruction string) (interface{}, error) {
+	without_newline := strings.TrimSpace(raw_instruction)
+
+	if strings.HasPrefix(without_newline, "get") {
+		instruction := Get{}
+		err := instruction.parse(without_newline)
+		return instruction, err
+	} else if strings.HasPrefix(without_newline, "set") {
+		instruction := Set{}
+		err := instruction.parse(without_newline)
+		return instruction, err
+	} else if strings.HasPrefix(without_newline, "keys") {
+		instruction := Keys{}
+		err := instruction.parse(without_newline)
+		return instruction, err
+	}
+	return nil, errors.New("Unknown instruction: " + without_newline)
 }
 
 func HandleConnection(c net.Conn) {
-
-
 	for {
-
 		fmt.Println("Client " + c.RemoteAddr().String() + " connected.")
 		for {
 			buffer, err := bufio.NewReader(c).ReadBytes('\n')
@@ -58,15 +127,40 @@ func HandleConnection(c net.Conn) {
 				break
 			}
 			fmt.Println(string(buffer))
-			instr, err := ParseInstruction(string(buffer))
+			instruction, err := ParseInstruction(string(buffer))
 			if err != nil {
-				fmt.Println(err)
+				fmt.Println("Failed to parse instruction: " + err.Error())
 			}
-			val, err := HandleInstruction(instr)
-			fmt.Println(m)
-			fmt.Println("val", val)
-			if val != "" {
-				c.Write([]byte(val))
+
+			switch instruct := instruction.(type) {
+			case Set:
+				fmt.Println("set KEY:", instruct.key)
+				result, err := instruct.execute()
+				if err != nil {
+					fmt.Println("err in get" + err.Error())
+				}
+				fmt.Println("Get result:", result)
+				c.Write([]byte(result))
+			case Get:
+				fmt.Println("get KEY:", instruct.key)
+				result, err := instruct.execute()
+				if err != nil {
+					fmt.Println("err in get" + err.Error())
+				}
+				fmt.Println("Get result:", result)
+				c.Write([]byte(result))
+			case Keys:
+				fmt.Println("get KEY:", instruct.key)
+				result, err := instruct.execute()
+				if err != nil {
+					fmt.Println("err in keys" + err.Error())
+				}
+				fmt.Println("Get result:", result)
+				c.Write([]byte(result))
+
+			default:
+				errors.New("Unknown instruction type")
+
 			}
 		}
 	}
@@ -74,8 +168,9 @@ func HandleConnection(c net.Conn) {
 }
 
 func main() {
+	fmt.Println("Gedis starting")
 	m = make(map[string]string)
-	fmt.Println("asd")
+
 	l, err := net.Listen(connType, connHost+":"+connPort)
 	if err != nil {
 		fmt.Println("Failed to listen on port " + connPort)
