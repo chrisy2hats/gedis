@@ -15,15 +15,22 @@ import (
 func parseInstruction(raw_instruction string) (interface{}, error) {
 	without_newline := strings.TrimSpace(raw_instruction)
 
-	if strings.HasPrefix(without_newline, "get") {
+    index := strings.Index(without_newline, " ")
+    if index == -1 {
+     index = len(without_newline)   
+    }
+    
+    command := without_newline[:index] 
+    
+    if strings.EqualFold(command, "get") {
 		instruction := Get{}
 		err := instruction.Parse(without_newline)
 		return instruction, err
-	} else if strings.HasPrefix(without_newline, "set") {
+	} else if strings.EqualFold(command, "set") {
 		instruction := Set{}
 		err := instruction.Parse(without_newline)
 		return instruction, err
-	} else if strings.HasPrefix(without_newline, "keys") {
+	} else if strings.EqualFold(command, "keys") {
 		instruction := Keys{}
 		err := instruction.Parse(without_newline)
 		return instruction, err
