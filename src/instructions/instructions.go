@@ -47,6 +47,10 @@ func ParseInstruction(raw_instruction string) (Instruction, error) {
 		instruction := Lrange{}
 		err := instruction.Parse(without_newline)
 		return &instruction, err
+	} else if strings.EqualFold(command, "lindex") {
+		instruction := Lindex{}
+		err := instruction.Parse(without_newline)
+		return &instruction, err
 	}
 
 	// TODO proper return object here
