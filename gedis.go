@@ -3,12 +3,11 @@ package main
 import (
 	"bufio"
 	"config"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"instructions"
 	"net"
 	"os"
-	"strings"
 )
 
 func main() {
@@ -42,30 +41,33 @@ func handleConnection(c net.Conn) {
 			break
 		}
 
+		var outcome = map[string]interface{}{
+			"successful": true,
+		}
+
 		instruction, err := instructions.ParseInstruction(string(buffer))
 		if err != nil {
-			fmt.Println("Failed to parse instruction: " + err.Error())
+			outcome["successful"] = false
+			outcome["error"] = err.Error()
+			jsn, _ := json.Marshal(outcome)
+			c.Write(jsn)
 			continue
 		}
 
 		result, err := instruction.Execute()
 		if err != nil {
 			fmt.Println("Err in execution" + err.Error())
-			// TODO report error to use
+			outcome["successful"] = false
+			outcome["error"] = err.Error()
+			jsn, _ := json.Marshal(outcome)
+			c.Write(jsn)
 			continue
 		}
 
-		if result.Value != "" {
-			switch res := result.Value.(type) {
-			case string:
-				fmt.Println("Get result:", res)
-				c.Write([]byte(res))
-			case []string:
-				fmt.Println("Got a list result", res)
-				c.Write([]byte(strings.Join(res, " ")))
-			default:
-				errors.New("Unexpected map Value type")
-			}
+		if result.Value != "" && result.Value != nil {
+			outcome["result"] = result.Value
 		}
+		jsn, _ := json.Marshal(outcome)
+		c.Write(jsn)
 	}
 }
