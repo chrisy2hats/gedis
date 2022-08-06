@@ -35,14 +35,18 @@ func main() {
 
 func handleConnection(c net.Conn) {
 	for {
-		buffer, err := bufio.NewReader(c).ReadBytes('\n')
-		if err != nil {
-			fmt.Println("err", err)
-			break
-		}
-
 		var outcome = map[string]interface{}{
 			"successful": true,
+		}
+
+		buffer, err := bufio.NewReader(c).ReadBytes('\n')
+		if err != nil {
+			outcome["successful"] = false
+			outcome["error"] = err.Error()
+
+			if err.Error() == "EOF" {
+				break
+			}
 		}
 
 		instruction, err := instructions.ParseInstruction(string(buffer))
@@ -59,7 +63,6 @@ func handleConnection(c net.Conn) {
 
 		result, err := instruction.Execute()
 		if err != nil {
-			fmt.Println("Err in execution" + err.Error())
 			outcome["successful"] = false
 			outcome["error"] = err.Error()
 			jsn, _ := json.Marshal(outcome)
