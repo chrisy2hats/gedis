@@ -8,14 +8,15 @@ export GO111MODULE=off
 export GOPATH=$PWD
 go run gedis.go
 ```
-# To use
-You can use the server over any socket or from telnet on a terminal  
+# To use 
+There is a Python client in-tree but a socket from any language should work      
 
 ```github
-$ telnet localhost 8080
-set a 5
-get a
+python3 client.py
+> set a 5
+> get a
 5
+>
 ```
 
 # Supported Commands
