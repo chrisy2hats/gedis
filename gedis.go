@@ -8,6 +8,7 @@ import (
 	"instructions"
 	"net"
 	"os"
+	"sync"
 )
 
 func main() {
@@ -21,6 +22,8 @@ func main() {
 
 	fmt.Println("Listening on " + conn_str)
 	defer l.Close()
+
+	lock := sync.Mutex{}
 	for {
 		c, err := l.Accept()
 
@@ -29,11 +32,11 @@ func main() {
 			continue
 		}
 		fmt.Println("Client " + c.RemoteAddr().String() + " connected.")
-		go handleConnection(c)
+		go handleConnection(c, &lock)
 	}
 }
 
-func handleConnection(c net.Conn) {
+func handleConnection(c net.Conn, lock *sync.Mutex) {
 	for {
 		var outcome = map[string]interface{}{
 			"successful": true,
@@ -61,7 +64,13 @@ func handleConnection(c net.Conn) {
 			continue
 		}
 
+		// All commands require the entire map to be locked
+		// Commands that may add a key like SET, LPUSH can't be done concurrently
+		// And commands that only read a key can't either as a different thread could delete a key whilst a GET is processed
+		lock.Lock()
 		result, err := instruction.Execute()
+		lock.Unlock()
+
 		if err != nil {
 			outcome["successful"] = false
 			outcome["error"] = err.Error()
