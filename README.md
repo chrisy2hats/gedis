@@ -12,14 +12,11 @@ TODO:
 Protect against concurrent access  
  
 Lists  
-rpush  
+lpush  
 lpop  
 lindex  
 lrange  
 
-Hashes (maybe)  
-HMSET   
-HGETALL  
 
 Tidyup:  
 Avoid switch statement in HandleConnection  

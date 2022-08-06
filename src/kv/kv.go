@@ -1,7 +1,7 @@
-package KV
+package kv
 
 import (
-    "sync"
+	"sync"
 )
 
 type MapValue struct {
@@ -12,6 +12,5 @@ type MapValue struct {
 	// https://pkg.go.dev/reflect#SliceHeader
 	writeLock sync.RWMutex
 }
-
 
 var KV = make(map[string]MapValue)
