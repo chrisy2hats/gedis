@@ -6,7 +6,7 @@ Just a project for learning Golang, Redis and Sockets. Not for serious/productio
 ```github
 export GO111MODULE=off
 export GOPATH=$PWD
-go run main.go
+go run gedis.go
 ```
 # To use
 You can use the server over any socket or from telnet on a terminal  
