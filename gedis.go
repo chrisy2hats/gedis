@@ -50,7 +50,10 @@ func handleConnection(c net.Conn) {
 			outcome["successful"] = false
 			outcome["error"] = err.Error()
 			jsn, _ := json.Marshal(outcome)
-			c.Write(jsn)
+			_, err := c.Write(jsn)
+			if err != nil {
+				fmt.Println("Write to socket failed. Client: " + c.RemoteAddr().String() + " Error: " + err.Error())
+			}
 			continue
 		}
 
@@ -60,7 +63,10 @@ func handleConnection(c net.Conn) {
 			outcome["successful"] = false
 			outcome["error"] = err.Error()
 			jsn, _ := json.Marshal(outcome)
-			c.Write(jsn)
+			_, err := c.Write(jsn)
+			if err != nil {
+				fmt.Println("Write to socket failed. Client: " + c.RemoteAddr().String() + " Error: " + err.Error())
+			}
 			continue
 		}
 
@@ -68,6 +74,10 @@ func handleConnection(c net.Conn) {
 			outcome["result"] = result.Value
 		}
 		jsn, _ := json.Marshal(outcome)
-		c.Write(jsn)
+		_, err = c.Write(jsn)
+		if err != nil {
+			fmt.Println("Write to socket failed. Client: " + c.RemoteAddr().String() + " Error: " + err.Error())
+			continue
+		}
 	}
 }
