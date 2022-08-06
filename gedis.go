@@ -13,14 +13,14 @@ import (
 
 func main() {
 	fmt.Println("Gedis started")
-	conn_str := config.CONN_HOST + ":" + config.CONN_PORT
-	l, err := net.Listen(config.CONN_TYPE, conn_str)
+	connStr := config.CONN_HOST + ":" + config.CONN_PORT
+	l, err := net.Listen(config.CONN_TYPE, connStr)
 	if err != nil {
-		fmt.Println("Failed to listen on : ", conn_str)
+		fmt.Println("Failed to listen on : ", connStr)
 		os.Exit(1)
 	}
 
-	fmt.Println("Listening on " + conn_str)
+	fmt.Println("Listening on " + connStr)
 	defer l.Close()
 
 	lock := sync.Mutex{}

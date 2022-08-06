@@ -2,6 +2,7 @@ package instructions
 
 import (
 	"errors"
+	"fmt"
 	"kv"
 	"strconv"
 	"strings"
@@ -12,12 +13,12 @@ type Lindex struct {
 	index int
 }
 
-func ParseLindex(raw_instruction string) (Instruction, error) {
-	space_count := strings.Count(raw_instruction, " ")
-	if space_count != 2 {
-		return nil, errors.New("Invalid lindex command: " + raw_instruction)
+func ParseLindex(rawInstruction string) (Instruction, error) {
+	spaceCount := strings.Count(rawInstruction, " ")
+	if spaceCount != 2 {
+		return nil, errors.New("Invalid lindex command: " + rawInstruction)
 	}
-	splt := strings.Split(raw_instruction, " ")
+	splt := strings.Split(rawInstruction, " ")
 
 	idx, err := strconv.Atoi(splt[2])
 	if err != nil {
@@ -28,15 +29,16 @@ func ParseLindex(raw_instruction string) (Instruction, error) {
 }
 
 func (lindex *Lindex) Execute() (kv.MapValue, error) {
-	if existing_value, exists := kv.KV[lindex.Key]; exists {
-		if existing_list, ok := existing_value.Value.([]string); ok {
-			if lindex.index < 0 || lindex.index > len(existing_list) {
-				return kv.MapValue{Value: ""}, errors.New("User tried to lindex outside of list range")
+	if existingValue, exists := kv.KV[lindex.Key]; exists {
+		if existingList, ok := existingValue.Value.([]string); ok {
+			if lindex.index < 0 || lindex.index > len(existingList) {
+				errMsg := fmt.Sprintf("%s %d %s %d",
+					"Attempted to lindex outside of list range. Index provided:", lindex.index, "Length of list:", len(existingList))
+				return kv.MapValue{Value: ""}, errors.New(errMsg)
 			}
-
-			return kv.MapValue{Value: existing_list[lindex.index]}, nil
+			return kv.MapValue{Value: existingList[lindex.index]}, nil
 		} else {
-			return kv.MapValue{Value: ""}, errors.New("User tried to lpush a non list type")
+			return kv.MapValue{Value: ""}, errors.New("lindex on a non list type key")
 		}
 	}
 

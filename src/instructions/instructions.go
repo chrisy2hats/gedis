@@ -19,19 +19,19 @@ var parsingLookup = map[string]func(string) (Instruction, error){
 	"lrange": ParseLrange,
 }
 
-func ParseInstruction(raw_instruction string) (Instruction, error) {
-	without_newline := strings.TrimSpace(raw_instruction)
+func ParseInstruction(rawInstruction string) (Instruction, error) {
+	withoutNewline := strings.TrimSpace(rawInstruction)
 
-	index := strings.Index(without_newline, " ")
+	index := strings.Index(withoutNewline, " ")
 	if index == -1 {
-		index = len(without_newline)
+		index = len(withoutNewline)
 	}
 
-	command := without_newline[:index]
+	command := withoutNewline[:index]
 
 	if f, exists := parsingLookup[strings.ToLower(command)]; exists {
-		return f(without_newline)
+		return f(withoutNewline)
 	} else {
-		return nil, errors.New("Unknown instruction: " + without_newline)
+		return nil, errors.New("Unknown instruction: " + withoutNewline)
 	}
 }
