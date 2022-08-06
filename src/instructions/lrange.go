@@ -14,27 +14,24 @@ type Lrange struct {
 	end   int
 }
 
-func (lrange *Lrange) Parse(raw_instruction string) error {
+func ParseLrange(raw_instruction string) (Instruction, error) {
 	space_count := strings.Count(raw_instruction, " ")
 	if space_count != 3 {
-		return errors.New("Invalid lrange command: " + raw_instruction)
+		return nil, errors.New("Invalid lrange command: " + raw_instruction)
 	}
 	splt := strings.Split(raw_instruction, " ")
 
-	lrange.Key = splt[1]
 	start, err := strconv.Atoi(splt[2])
 	if err != nil {
-		return err
+		return nil, err
 	}
-	lrange.start = start
 
 	end, err := strconv.Atoi(splt[3])
 	if err != nil {
-		return err
+		return nil, err
 	}
-	lrange.end = end
 
-	return nil
+	return &Lrange{Key: splt[1], start: start, end: end}, nil
 }
 
 func (lrange *Lrange) Execute() (kv.MapValue, error) {

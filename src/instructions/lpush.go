@@ -11,15 +11,13 @@ type Lpush struct {
 	value string
 }
 
-func (lpush *Lpush) Parse(raw_instruction string) error {
+func ParseLpush(raw_instruction string) (Instruction, error) {
 	space_count := strings.Count(raw_instruction, " ")
 	if space_count != 2 {
-		return errors.New("Invalid lpush command")
+		return nil, errors.New("Invalid lpush command")
 	}
 	splt := strings.Split(raw_instruction, " ")
-	lpush.Key = splt[1]
-	lpush.value = splt[2]
-	return nil
+	return &Lpush{Key: splt[1], value: splt[2]}, nil
 }
 
 func (lpush *Lpush) Execute() (kv.MapValue, error) {

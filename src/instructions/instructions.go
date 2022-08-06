@@ -8,7 +8,15 @@ import (
 
 type Instruction interface {
 	Execute() (kv.MapValue, error)
-	Parse(raw_instruction string) error
+}
+
+var parsingLookup = map[string]func(string) (Instruction, error){
+	"get":    ParseGet,
+	"set":    ParseSet,
+	"keys":   ParseKeys,
+	"lpush":  ParseLpush,
+	"lindex": ParseLindex,
+	"lrange": ParseLrange,
 }
 
 func ParseInstruction(raw_instruction string) (Instruction, error) {
@@ -21,38 +29,9 @@ func ParseInstruction(raw_instruction string) (Instruction, error) {
 
 	command := without_newline[:index]
 
-	// TODO ideally this string -> function can be stored in a map. Sadly the below doesn't work. Maybe there is a way to do similar
-	//var _ = map[string]func(raw_instruction string) (instructions.Instruction, error){
-	//	"get": instructions.ParseGet,
-	//"set": instructions.Set.Parse,
-	//}
-
-	if strings.EqualFold(command, "get") {
-		instruction := Get{}
-		err := instruction.Parse(without_newline)
-		return &instruction, err
-	} else if strings.EqualFold(command, "set") {
-		instruction := Set{}
-		err := instruction.Parse(without_newline)
-		return &instruction, err
-	} else if strings.EqualFold(command, "keys") {
-		instruction := Keys{}
-		err := instruction.Parse(without_newline)
-		return &instruction, err
-	} else if strings.EqualFold(command, "lpush") {
-		instruction := Lpush{}
-		err := instruction.Parse(without_newline)
-		return &instruction, err
-	} else if strings.EqualFold(command, "lrange") {
-		instruction := Lrange{}
-		err := instruction.Parse(without_newline)
-		return &instruction, err
-	} else if strings.EqualFold(command, "lindex") {
-		instruction := Lindex{}
-		err := instruction.Parse(without_newline)
-		return &instruction, err
+	if f, exists := parsingLookup[strings.ToLower(command)]; exists {
+		return f(without_newline)
+	} else {
+		return nil, errors.New("Unknown instruction: " + without_newline)
 	}
-
-	// TODO proper return object here
-	return &Get{}, errors.New("Unknown instruction: " + without_newline)
 }

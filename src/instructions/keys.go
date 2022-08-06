@@ -12,15 +12,13 @@ type Keys struct {
 	value string
 }
 
-func (set *Keys) Parse(raw_instruction string) error {
+func ParseKeys(raw_instruction string) (Instruction, error) {
 	space_count := strings.Count(raw_instruction, " ")
 	if space_count != 1 {
-		return errors.New("Invalid set command")
+		return nil, errors.New("Invalid keys command")
 	}
 	splt := strings.Split(raw_instruction, " ")
-	set.Key = splt[0]
-	set.value = splt[1]
-	return nil
+	return &Keys{Key: splt[0], value: splt[1]}, nil
 }
 
 func (Keys *Keys) Execute() (kv.MapValue, error) {

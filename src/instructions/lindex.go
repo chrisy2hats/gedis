@@ -12,21 +12,19 @@ type Lindex struct {
 	index int
 }
 
-func (lindex *Lindex) Parse(raw_instruction string) error {
+func ParseLindex(raw_instruction string) (Instruction, error) {
 	space_count := strings.Count(raw_instruction, " ")
 	if space_count != 2 {
-		return errors.New("Invalid lindex command: " + raw_instruction)
+		return nil, errors.New("Invalid lindex command: " + raw_instruction)
 	}
 	splt := strings.Split(raw_instruction, " ")
 
-	lindex.Key = splt[1]
-	index, err := strconv.Atoi(splt[2])
+	idx, err := strconv.Atoi(splt[2])
 	if err != nil {
-		return err
+		return nil, err
 	}
-	lindex.index = index
 
-	return nil
+	return &Lindex{Key: splt[1], index: idx}, nil
 }
 
 func (lindex *Lindex) Execute() (kv.MapValue, error) {
