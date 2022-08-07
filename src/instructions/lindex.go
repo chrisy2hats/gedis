@@ -10,7 +10,7 @@ import (
 
 type Lindex struct {
 	Key   string
-	index int
+	Index int
 }
 
 func ParseLindex(rawInstruction string) (Instruction, error) {
@@ -25,18 +25,18 @@ func ParseLindex(rawInstruction string) (Instruction, error) {
 		return nil, err
 	}
 
-	return &Lindex{Key: splt[1], index: idx}, nil
+	return &Lindex{Key: splt[1], Index: idx}, nil
 }
 
 func (lindex *Lindex) Execute() (kv.MapValue, error) {
 	if existingValue, exists := kv.KV[lindex.Key]; exists {
 		if existingList, ok := existingValue.Value.([]string); ok {
-			if lindex.index < 0 || lindex.index > len(existingList) {
+			if lindex.Index < 0 || lindex.Index > len(existingList) {
 				errMsg := fmt.Sprintf("%s %d %s %d",
-					"Attempted to lindex outside of list range. Index provided:", lindex.index, "Length of list:", len(existingList))
+					"Attempted to lindex outside of list range. Index provided:", lindex.Index, "Length of list:", len(existingList))
 				return kv.MapValue{Value: ""}, errors.New(errMsg)
 			}
-			return kv.MapValue{Value: existingList[lindex.index]}, nil
+			return kv.MapValue{Value: existingList[lindex.Index]}, nil
 		} else {
 			return kv.MapValue{Value: ""}, errors.New("lindex on a non list type key")
 		}

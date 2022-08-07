@@ -8,7 +8,7 @@ import (
 
 type Set struct {
 	Key   string
-	value string
+	Value string
 }
 
 func ParseSet(rawInstruction string) (Instruction, error) {
@@ -18,10 +18,10 @@ func ParseSet(rawInstruction string) (Instruction, error) {
 		return nil, errors.New("Invalid set command: " + rawInstruction)
 	}
 	splt := strings.Split(rawInstruction, " ")
-	return &Set{Key: splt[1], value: splt[2]}, nil
+	return &Set{Key: splt[1], Value: splt[2]}, nil
 }
 
 func (set *Set) Execute() (kv.MapValue, error) {
-	kv.KV[set.Key] = kv.MapValue{Value: set.value}
+	kv.KV[set.Key] = kv.MapValue{Value: set.Value}
 	return kv.MapValue{}, nil
 }

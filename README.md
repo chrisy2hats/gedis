@@ -32,4 +32,7 @@ The commands and arguments are much the same as redis-cli
 | LRANGE | LRANGE 0 5   | Fetch the values between the indices provided values in the list |
 
 
-
+# To run unit tests run  
+```github
+go test -v ./...
+```

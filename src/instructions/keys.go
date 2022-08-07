@@ -8,8 +8,7 @@ import (
 )
 
 type Keys struct {
-	Key   string
-	value string
+	Key string
 }
 
 func ParseKeys(rawInstruction string) (Instruction, error) {
@@ -18,13 +17,13 @@ func ParseKeys(rawInstruction string) (Instruction, error) {
 		return nil, errors.New("Invalid keys command: " + rawInstruction)
 	}
 	splt := strings.Split(rawInstruction, " ")
-	return &Keys{Key: splt[0], value: splt[1]}, nil
+	return &Keys{Key: splt[1]}, nil
 }
 
 func (Keys *Keys) Execute() (kv.MapValue, error) {
 	// The startline and endline additons are needed to ensure the regex "a" doesn't match
 	// both Keys called "a" and "about"
-	regex := regexp.MustCompile("^" + Keys.value + "$")
+	regex := regexp.MustCompile("^" + Keys.Key + "$")
 	bob := strings.Builder{}
 
 	for k := range kv.KV {
